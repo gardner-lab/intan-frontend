@@ -120,7 +120,7 @@ switch lower(ext)
 		% open ephys extraction code here
 		% add option for open ephys?
 
-		[data, timestamps, info] = load_open_ephys_bin(FILENAME)
+		[data, timestamps, info] = load_open_ephys_binary(FILENAME)
 
 		DATASTRUCT.ephys.t=timestamps;
 		% DATASTRUCT.ephys.labels=amps;
