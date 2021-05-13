@@ -122,6 +122,17 @@ switch lower(ext)
 
 		[data, timestamps, info] = load_open_ephys_bin(FILENAME)
 
+		DATASTRUCT.ephys.t=timestamps;
+		% DATASTRUCT.ephys.labels=amps;
+		DATASTRUCT.ephys.data=data;
+		DATASTRUCT.ephys.fs=round(1./(t(2)-t(1)));
+
+		% DATASTRUCT.aux.t=DATASTRUCT.ephys.t;
+		% DATASTRUCT.aux.labels=1:size(AUX,2);
+		% DATASTRUCT.aux.data=aux;
+		% DATASTRUCT.aux.fs=DATASTRUCT.ephys.fs;
+
+
 	case '.mat'
 
 		% assumes my custom MATLAB format (TODO:  add support for custom loading function)
