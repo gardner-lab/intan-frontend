@@ -120,6 +120,8 @@ switch lower(ext)
 		% open ephys extraction code here
 		% add option for open ephys?
 
+		[data, timestamps, info] = load_open_ephys_bin(FILENAME)
+
 	case '.mat'
 
 		% assumes my custom MATLAB format (TODO:  add support for custom loading function)
