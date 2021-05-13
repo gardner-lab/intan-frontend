@@ -115,17 +115,17 @@ switch lower(ext)
 		% T AMPS DATA and AUX as before
 	
 
-	case '.continuous'
+	case '.oebin'
 
 		% open ephys extraction code here
 		% add option for open ephys?
 
-		[data, timestamps, info] = load_open_ephys_binary(FILENAME)
-
-		DATASTRUCT.ephys.t=timestamps;
-		% DATASTRUCT.ephys.labels=amps;
-		DATASTRUCT.ephys.data=data;
-		DATASTRUCT.ephys.fs=round(1./(t(2)-t(1)));
+		[D]=load_open_ephys_binary(FILENAME, 'continuous', 1)
+        
+		DATASTRUCT.ephys.t=D.Timestamps;
+		DATASTRUCT.ephys.data=D.Data;
+		DATASTRUCT.ephys.fs=D.Header.sample_rate;
+        DATASTRUCT.ephys.amps=(0:D.Header.num_channels-1)
 
 		% DATASTRUCT.aux.t=DATASTRUCT.ephys.t;
 		% DATASTRUCT.aux.labels=1:size(AUX,2);
