@@ -120,17 +120,21 @@ switch lower(ext)
 		% open ephys extraction code here
 		% add option for open ephys?
 
-		[D]=load_open_ephys_binary(FILENAME, 'continuous', 1)
+		[D]=load_open_ephys_binary(FILENAME, 'continuous', 1);
         
 		DATASTRUCT.ephys.t=D.Timestamps;
 		DATASTRUCT.ephys.data=D.Data;
 		DATASTRUCT.ephys.fs=D.Header.sample_rate;
         DATASTRUCT.ephys.amps=(0:D.Header.num_channels-1)
+        
+        aux=DATASTRUCT.ephys.data(13,:);
 
-		% DATASTRUCT.aux.t=DATASTRUCT.ephys.t;
-		% DATASTRUCT.aux.labels=1:size(AUX,2);
-		% DATASTRUCT.aux.data=aux;
-		% DATASTRUCT.aux.fs=DATASTRUCT.ephys.fs;
+		DATASTRUCT.aux.t=DATASTRUCT.ephys.t;
+		DATASTRUCT.aux.labels=(1);
+		DATASTRUCT.aux.data=aux;
+		DATASTRUCT.aux.fs=DATASTRUCT.ephys.fs;
+        
+        DATASTRUCT.filestatus=0;
 
 
 	case '.mat'

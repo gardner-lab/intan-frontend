@@ -360,7 +360,7 @@ for i=1:length(proc_files)
     % interpolate song detection to original space, collate idxs
 
     detection=interp1(song_t,double(song_bin),raw_t,'nearest'); 
-    ext_pts=markolab_collate_idxs(detection,round(audio_pad*datastruct.aux.fs))/datastruct.aux.fs;
+    ext_pts=markolab_collate_idxs(detection,round(audio_pad*birdstruct.audio.fs))/birdstruct.audio.fs;
 
     if ~isempty(ext_pts)
         disp(['Song detected in file:  ' proc_files{i}]);
