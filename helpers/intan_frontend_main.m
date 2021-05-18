@@ -116,6 +116,11 @@ mfile_path = mfilename('fullpath');
 if ~endsWith(DIR,"/")
     DIR=DIR+"/"
 end
+
+% this step is very "dumb"!!!! 
+% path needs to be "/Users/gardnerlab/Documents/Open Ephys/{expid}/...
+% Record Node 102/experiment{i}"
+
 splt=split(DIR, "/");
 expid=splt(end-3);
 expnum=splt(end-1);
@@ -310,12 +315,6 @@ for i=1:length(proc_files)
     if ~exist(fullfile(root_dir,num),'dir')
         mkdir(fullfile(root_dir,num));
     end
-
-    % create the template directory and a little readme
-
-    if ~exist(fullfile(root_dir,num,'templates'),'dir')
-        mkdir(fullfile(root_dir,num,'templates'));
-    end
     
     image_dir=fullfile(root_dir,num,image_pre);
     wav_dir=fullfile(root_dir,num,wav_pre);
@@ -330,33 +329,35 @@ for i=1:length(proc_files)
     if ~exist(data_dir, 'dir')
         mkdir(data_dir);
     end
-	
+    
+    dirstruct=struct('image',image_dir,'wav',wav_dir,'data',data_dir);
+
     disp('Entering song detection...');
 
     if ~isempty(filtering)
-        [b,a]=butter(5,[filtering/(datastruct.aux.fs/2)],'high'); 
-        datastruct.aux.norm_data=filtfilt(b,a,datastruct.aux.data);
+        [b,a]=butter(5,[filtering/(datastruct.audio.fs/2)],'high'); 
+        datastruct.audio.norm_data=filtfilt(b,a,datastruct.audio.data);
     else
-        datastruct.aux.norm_data=detrend(datastruct.aux.data);
+        datastruct.audio.norm_data=detrend(datastruct.audio.data);
     end
 
-    datastruct.aux.norm_data=datastruct.aux.norm_data./max(abs(datastruct.aux.norm_data));
+    datastruct.audio.norm_data=datastruct.audio.norm_data./max(abs(datastruct.audio.norm_data));
 
-    [song_bin,song_t]=zftftb_song_det(datastruct.aux.norm_data,datastruct.aux.fs,'song_band',song_band,...
+    [song_bin,song_t]=zftftb_song_det(datastruct.audio.norm_data,datastruct.audio.fs,'song_band',song_band,...
         'len',song_len,'overlap',song_overlap,'song_duration',song_duration,...
         'ratio_thresh',song_ratio,'song_thresh',song_thresh,'pow_thresh',song_pow);
 
-    raw_t=[1:length(datastruct.aux.norm_data)]./datastruct.aux.fs;
+    raw_t=[1:length(datastruct.audio.norm_data)]./datastruct.audio.fs;
 
     % interpolate song detection to original space, collate idxs
 
     detection=interp1(song_t,double(song_bin),raw_t,'nearest'); 
-    ext_pts=markolab_collate_idxs(detection,round(audio_pad*datastruct.aux.fs))/datastruct.aux.fs;
+    ext_pts=markolab_collate_idxs(detection,round(audio_pad*datastruct.audio.fs))/datastruct.audio.fs;
 
     if ~isempty(ext_pts)
         disp(['Song detected in file:  ' proc_files{i}]);
-        intan_frontend_dataextract(bird_split{j},birdstruct,dirstruct,...
-            ext_pts,disp_band(1),disp_band(2),colors,'audio',1,'songdet1_','');	
+        intan_frontend_dataextract(num,datastruct,dirstruct,...
+            ext_pts,disp_band(1),disp_band(2),colors,'audio',1,'songdet','');	
     end
     
     intan_frontend_finish(replace(proc_files{i}, "structure.oebin", ""), cur_proc_dir)

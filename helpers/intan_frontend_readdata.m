@@ -125,14 +125,14 @@ switch lower(ext)
 		DATASTRUCT.ephys.t=D.Timestamps;
 		DATASTRUCT.ephys.data=D.Data;
 		DATASTRUCT.ephys.fs=D.Header.sample_rate;
-        DATASTRUCT.ephys.amps=(0:D.Header.num_channels-1)
+        DATASTRUCT.ephys.amps=(0:D.Header.num_channels-1);
         
-        aux=DATASTRUCT.ephys.data(13,:);
+        audio=DATASTRUCT.ephys.data(13,:);
 
-		DATASTRUCT.aux.t=DATASTRUCT.ephys.t;
-		DATASTRUCT.aux.labels=(1);
-		DATASTRUCT.aux.data=aux;
-		DATASTRUCT.aux.fs=DATASTRUCT.ephys.fs;
+		DATASTRUCT.audio.t=DATASTRUCT.ephys.t;
+		DATASTRUCT.audio.labels=(1);
+		DATASTRUCT.audio.data=audio;
+		DATASTRUCT.audio.fs=DATASTRUCT.ephys.fs;
         
         DATASTRUCT.filestatus=0;
 

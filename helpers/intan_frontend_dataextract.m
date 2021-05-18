@@ -54,7 +54,7 @@ sonogram_im=flipdim(sonogram_im,1);
 [f,t]=size(sonogram_im);
 im_son_to_vec=(length(DATA.(SOURCE).norm_data)-(3.3/1e3)*fs)/t;
 
-data_types={'ephys','ttl','digout','digin','adc','aux','audio','playback'};
+data_types={'ephys','audio'};
 found_types=fieldnames(DATA);
 
 to_del=[];
@@ -67,7 +67,7 @@ end
 data_types(to_del)=[];
 
 savefun=@(filename,datastruct) save(filename,'-struct','datastruct','-v7.3');
-sonogram_filename=fullfile(DIRS.image,[ PREFIX FILENAME SUFFIX '.gif' ]);
+sonogram_filename=fullfile(DIRS.image,PREFIX+FILENAME+SUFFIX+'.gif');
 
 for i=1:size(EXT_PTS,1)
 
@@ -102,10 +102,10 @@ for i=1:size(EXT_PTS,1)
 				endpoint=length(EXTDATA.(data_types{j}).data);
 			end
 
-			EXTDATA.(data_types{j}).data=EXTDATA.(data_types{j}).data(startpoint:endpoint,:);
+			EXTDATA.(data_types{j}).data=EXTDATA.(data_types{j}).data(:,startpoint:endpoint);
 
 			if isfield(EXTDATA.(data_types{j}),'norm_data')
-				EXTDATA.(data_types{j}).norm_data=EXTDATA.(data_types{j}).norm_data(startpoint:endpoint,:);
+				EXTDATA.(data_types{j}).norm_data=EXTDATA.(data_types{j}).norm_data(:,startpoint:endpoint);
 			end
 
 			EXTDATA.(data_types{j}).t=EXTDATA.(data_types{j}).t(startpoint:endpoint);
@@ -118,7 +118,7 @@ for i=1:size(EXT_PTS,1)
 		continue;
 	end
 
-	save_name=[ PREFIX FILENAME '_chunk_' num2str(i) SUFFIX ];
+	save_name=PREFIX+FILENAME+'_chunk_'+num2str(i)+SUFFIX;
 
 	sonogram_im(1:10,ceil(startpoint/im_son_to_vec):ceil(endpoint/im_son_to_vec))=62;
 
@@ -132,15 +132,7 @@ for i=1:size(EXT_PTS,1)
 	[f,t]=size(chunk_sonogram_im);
 	chunk_im_son_to_vec=(length(EXTDATA.(SOURCE).data)-(10/1e3)*fs)/t;
 
-	if isfield(EXTDATA,'ttl') & ~isempty(EXTDATA.ttl.data)
-		ttl_points=find(EXTDATA.ttl.data>.5);
-		ttl_son=round(ttl_points/chunk_im_son_to_vec);
-		ttl_son(ttl_son<1|ttl_son>size(chunk_sonogram_im,2))=[];
-		chunk_sonogram_im(1:10,round(ttl_son))=62;
-	end
-
-	imwrite(uint8(chunk_sonogram_im),colormap([ COLORS '(63)']),fullfile(DIRS.image,[ save_name '.gif']),'gif');
-
+	imwrite(uint8(chunk_sonogram_im),colormap([ COLORS '(63)']),fullfile(DIRS.image,save_name+'.gif'),'gif');
 
 	% normalize audio to write out to wav file
 
@@ -153,7 +145,7 @@ for i=1:size(EXT_PTS,1)
 		EXTDATA.(SOURCE).norm_data=EXTDATA.(SOURCE).norm_data./(max_audio*(1+1e-3));
 	end
 
-	audiowrite(fullfile(DIRS.wav,[ save_name '.wav' ]),EXTDATA.(SOURCE).norm_data,round(fs));
+	audiowrite(fullfile(DIRS.wav,save_name+'.wav'),EXTDATA.(SOURCE).norm_data,round(fs));
 
 	%wavwrite(EXTDATA.(SOURCE).norm_data,fs,fullfile(DIRS.wav,[ save_name '.wav']));
 
@@ -168,7 +160,7 @@ for i=1:size(EXT_PTS,1)
 	%EXTDATA.(SOURCE)=rmfield(EXTDATA.(SOURCE),'norm_data');
 
 	if DATASAVE
-		savefun(fullfile(DIRS.data,[ save_name '.mat']),EXTDATA);
+		savefun(fullfile(DIRS.data,save_name+'.mat'),EXTDATA);
 	end
 
 	clear EXTDATA;
