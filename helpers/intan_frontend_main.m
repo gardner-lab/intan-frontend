@@ -75,20 +75,10 @@ song_thresh=.25; % between .2 and .3 seems to work best (higher is more exlusive
 song_band=[2e3 6e3];
 song_pow=-inf; % raw power threshold (so extremely weak signals are excluded)
 song_duration=.8; % moving average of ratio
-clipping=-3;
 colors='hot';
 disp_band=[1 10e3];
 filtering=300; % changed to 100 from 700 as a more sensible default, leave empty to filter later
 audio_pad=7; % pad on either side of the extraction (in seconds)
-
-% parameters for folder creation
-
-folder_format='yyyy-mm-dd';
-parse_string='auto'; % how to parse filenames, b=tokens.birdid, i=tokens.recid, m=micid, t=ttlid, d=date
-		       % character position indicates which token (after delim split) contains the info
-
-date_string='yymmddHHMMSS'; % parse date using datestr format
-auto_delete_int=inf; % delete data n days old (set to inf to never delete)
 
 % directory names
 
@@ -98,7 +88,6 @@ data_pre='mat';
 sleep_pre='sleep';
 
 delimiter='_'; % delimiter for splitting fields in filename
-bird_delimiter='\&'; % delimiter for splitting multiple birds
 
 % sleep parameters
 
@@ -112,26 +101,11 @@ email_monitor=0; % monitor file creation, email if no files created in email_mon
 email_flag=0;
 email_noisecut=0;
 email_noiselen=4;
-file_elapsed=0;
-
-% ttl & playback parameters
-
-ttl_extract=1; % set to 1 if you'd like to extract based on TTL
-ttl_skip=0; % skip song detection if TTL detected?
-
-playback_extract=0; % set to 1 if you'd like to extract based on playback
-playback_thresh=.01;
-playback_rmswin=.025;
-playback_skip=0;
 
 % define for manual parsing
 
-birdid='';
-recid='';
 parse_options='';
 last_file=clock;
-
-% TODO: option for custom e-mail function (just map to anonymous function)
 
 file_check=1; % how long to wait between file reads to check if file is no longer being written (in seconds)
 
@@ -139,6 +113,9 @@ mfile_path = mfilename('fullpath');
 [script_path,~,~]=fileparts(mfile_path);
 
 % where to place the parsed files
+if ~endsWith(DIR,"/")
+    DIR=DIR+"/"
+end
 splt=split(DIR, "/");
 expid=splt(end-3);
 expnum=splt(end-1);
@@ -154,7 +131,7 @@ unorganized_dir=fullfile(pwd,'..','..','ephys_data','staging','unorganized',splt
 
 % internal parameters
 
-data_types={'ttl','playback','audio'};
+% data_types={'ttl','playback','audio'};
 
 hline=repmat('#',[1 80]);
 
@@ -168,7 +145,7 @@ end
 
 % directory for files that have not been recognized
 
-if ~exist(unorganized_dir,'dir');
+if ~exist(unorganized_dir,'dir')
 	mkdir(unorganized_dir);
 end
 
@@ -252,10 +229,10 @@ if ~isempty(parse_options)
 	end
 end
 
-if exist('gmail_send')~=2
-	disp('Email from MATLAB not figured, turning off auto-email features...');
-	email_monitor=0;
-end
+% if exist('gmail_send')~=2
+% 	disp('Email from MATLAB not figured, turning off auto-email features...');
+% 	email_monitor=0;
+% end
 
 EMAIL_FLAG=email_flag;
 LAST_FILE=last_file;
@@ -278,9 +255,6 @@ end
 
 clear names;
 
-user_birdid=birdid;
-user_recid=recid;
-
 for i=1:length(proc_files)
 
 	fclose('all'); % seems to be necessary
@@ -289,6 +263,16 @@ for i=1:length(proc_files)
 
 	disp([repmat(hline,[2 1])]);
 	disp(['Processing: ' proc_files{i}]);
+    
+    % make dir for processed
+    match=regexp(proc_files{i}, "recording[0-9]*", "match");
+    num=regexp(match, "[0-9]*", "match");
+    
+    cur_proc_dir=fullfile(proc_dir,num);
+    
+    if ~exist(cur_proc_dir, 'dir')
+        mkdir(cur_proc_dir)
+    end
 
 	% try reading the file, if we fail, skip
 
@@ -318,13 +302,10 @@ for i=1:length(proc_files)
 
 	if datastruct.filestatus>0 
 		disp('Could not read file, skipping...');
-		% intan_frontend_finish(proc_files{i},proc_dir);
 		continue;
     end
 
     % create the recording directory
-    match=regexp(proc_files{i}, "recording[0-9]*", "match");
-    num=regexp(match, "[0-9]*", "match");
     
     if ~exist(fullfile(root_dir,num),'dir')
         mkdir(fullfile(root_dir,num));
@@ -339,6 +320,16 @@ for i=1:length(proc_files)
     image_dir=fullfile(root_dir,num,image_pre);
     wav_dir=fullfile(root_dir,num,wav_pre);
     data_dir=fullfile(root_dir,num,data_pre);
+    
+    if ~exist(image_dir, 'dir')
+        mkdir(image_dir);
+    end
+    if ~exist(wav_dir, 'dir')
+        mkdir(wav_dir);
+    end
+    if ~exist(data_dir, 'dir')
+        mkdir(data_dir);
+    end
 	
     disp('Entering song detection...');
 
@@ -346,10 +337,10 @@ for i=1:length(proc_files)
         [b,a]=butter(5,[filtering/(datastruct.aux.fs/2)],'high'); 
         datastruct.aux.norm_data=filtfilt(b,a,datastruct.aux.data);
     else
-        datastruct.aux.norm-data=detrend(datastruct.aux.data);
+        datastruct.aux.norm_data=detrend(datastruct.aux.data);
     end
 
-    datastruct.aux.norm_data=datastuct.aux.norm_data./max(abs(datastruct.aux.norm_data));
+    datastruct.aux.norm_data=datastruct.aux.norm_data./max(abs(datastruct.aux.norm_data));
 
     [song_bin,song_t]=zftftb_song_det(datastruct.aux.norm_data,datastruct.aux.fs,'song_band',song_band,...
         'len',song_len,'overlap',song_overlap,'song_duration',song_duration,...
@@ -367,9 +358,9 @@ for i=1:length(proc_files)
         intan_frontend_dataextract(bird_split{j},birdstruct,dirstruct,...
             ext_pts,disp_band(1),disp_band(2),colors,'audio',1,'songdet1_','');	
     end
+    
+    intan_frontend_finish(replace(proc_files{i}, "structure.oebin", ""), cur_proc_dir)
 
 end
 
-clearvars datastruct dirstruct dirstructttl;
-
-%intan_frontend_finish(proc_files{i},proc_dir);
+clearvars datastruct;
