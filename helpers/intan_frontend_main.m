@@ -267,7 +267,7 @@ for i=1:length(proc_files)
 	% read in the data
 
 	disp([repmat(hline,[2 1])]);
-	disp(['Processing: ' proc_files{i}]);
+	disp('Processing: '+proc_files{i});
     
     % make dir for processed
     match=regexp(proc_files{i}, "recording[0-9]*", "match");
@@ -355,7 +355,7 @@ for i=1:length(proc_files)
     ext_pts=markolab_collate_idxs(detection,round(audio_pad*datastruct.audio.fs))/datastruct.audio.fs;
 
     if ~isempty(ext_pts)
-        disp(['Song detected in file:  ' proc_files{i}]);
+        disp('Song detected in file:  '+proc_files{i});
         intan_frontend_dataextract(num,datastruct,dirstruct,...
             ext_pts,disp_band(1),disp_band(2),colors,'audio',1,'songdet','');	
     end
