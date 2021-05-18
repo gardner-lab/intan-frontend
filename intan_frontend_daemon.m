@@ -34,12 +34,13 @@ end
 
 email_flag=0; % did we send an e-mail? initialize as 0
 last_file=clock; % when was the last file processed?
-interval=30;
+interval=60*5; % wait 5 min before looping again
 
 while 1==1
 
 	% return the email flag in case we're monitoring so multiple emails are not sent
 
 	[email_flag,last_file]=intan_frontend_main(DIR,varargin{:},'email_flag',email_flag,'last_file',last_file);
+    disp('Loop complete.. sleeping for a 5 min');
 	pause(interval);
 end
