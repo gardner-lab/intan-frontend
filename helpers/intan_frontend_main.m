@@ -114,7 +114,7 @@ mfile_path = mfilename('fullpath');
 
 % where to place the parsed files
 if ~endsWith(DIR,"/")
-    DIR=DIR+"/"
+    DIR=DIR+"/";
 end
 
 % this step is very "dumb"!!!! 
@@ -128,10 +128,10 @@ splt2=split(expid,"_");
 birdid=splt2(1);
 recid=regexp(expnum,"[0-9]$","match");
 
-root_dir=fullfile(pwd,'..','..','ephys_data','intan_data',expid,expnum); % where will the detected files go
-proc_dir=fullfile(pwd,'..','..','ephys_data','staging','processed',expid,expnum); % where do we put the files after processing, maybe auto-delete
+root_dir=fullfile('/Users/gardnerlab/lab/ephys_data','open_ephys_data',expid,expnum); % where will the detected files go
+proc_dir=fullfile('/Users/gardnerlab/lab/ephys_data','staging','processed',expid,expnum); % where do we put the files after processing, maybe auto-delete
 					 % after we're confident in the operation of the pipeline
-unorganized_dir=fullfile(pwd,'..','..','ephys_data','staging','unorganized',splt(end-3),splt(end-1));
+unorganized_dir=fullfile('/Users/gardnerlab/lab/ephys_data','staging','unorganized',splt(end-3),splt(end-1));
 
 
 % internal parameters
@@ -355,11 +355,12 @@ for i=1:length(proc_files)
     ext_pts=markolab_collate_idxs(detection,round(audio_pad*datastruct.audio.fs))/datastruct.audio.fs;
 
     if ~isempty(ext_pts)
-        disp('Song detected in file:  '+proc_files{i});
+        disp('Song detected in recording');
         intan_frontend_dataextract(num,datastruct,dirstruct,...
             ext_pts,disp_band(1),disp_band(2),colors,'audio',1,'songdet','');	
     end
     
+    disp('Data extraction complete');
     intan_frontend_finish(replace(proc_files{i}, "structure.oebin", ""), cur_proc_dir)
 
 end
